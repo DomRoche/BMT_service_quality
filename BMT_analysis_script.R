@@ -14,6 +14,7 @@ require(glmulti)
 require(nnet)
 require(effects)
 require(ggplot2)
+require(ggpubr)
 require(AER)
 require(dplyr)
 require(tidyr)
@@ -157,6 +158,8 @@ xyplot(log(jolts+1)~s_TL, type=c("p", "smooth"), data=sq1)
 
 hist(sq1$jolts)
 
+# here, we run a negative binomial GLMM and a Poisson GLMM to evaluate whether one deals with the zeros better than the other
+
 ### negative binomial error distribution
 
   t1 <- glm.nb(jolts ~ I(s_duration^2) + I(s_TL^2) + s_turnRate + pcMUC + s_gnaCm2  + s_parCm2 + s_mucusProt + 
@@ -191,6 +194,7 @@ hist(sq1$jolts)
   # variance explaineed
 	r.squaredGLMM(t1) # 0.296
 	Dsquared(t1) # 0.277
+	AIC(t1)
 
 
 ### poisson error distribution
@@ -227,8 +231,10 @@ hist(sq1$jolts)
   # variance explaineed
 	r.squaredGLMM(t1.1) # 0.2523
 	Dsquared(t1.1) # 0.277
+	AIC(t1.1)
 
-# N.B. Diagnostics are almost the same for both models. Variance explained is slightly higher for the negative binomial model.
+# N.B. Diagnostics are almost the same for both models. Variance explained is only slightly higher for the negative binomial model
+#	     but the AIC is >2 units lower for the Poisson GLMM, so we retain this (simpler) model.
 
 
 
@@ -270,12 +276,13 @@ t.final <- glm(jolts ~ I(s_duration^2) + I(s_TL^2) + pcMUC + s_turnRate + s_gnaC
 
 ### Plots of model predictions
 
-	plot(effect("s_duration", t.final), colors = "blue", ylab="Jolts", main="")
-	plot(effect("pcMUC", t.final), colors = "blue", ylab="Jolts", main="")
-	plot(effect("s_turnRate", t.final), colors = "blue", ylab="Jolts", main="")
-	plot(effect("s_gnaCm2", t.final), colors = "blue", ylab="Jolts", main="")
-	plot(effect("s_TL", t.final), colors = "blue", ylab="Jolts", main="")
-	plot(effect("clientType", t.final), colors = "blue", ylab="Jolts", main="")
+
+	plot(effect("s_duration", t.final), colors = "blue", main="", axes=list(y=list(type="response", lab="Jolts", lim=c(0, 9))))
+	plot(effect("s_TL", t.final), colors = "blue", main="", axes=list(y=list(type="response", lab="Jolts", lim=c(0, 0.7))))
+	plot(effect("pcMUC", t.final), colors = "blue", main="", axes=list(y=list(type="response", lab="Jolts", lim=c(0, 4.5))))
+	plot(effect("s_turnRate", t.final), colors = "blue", main="", axes=list(y=list(type="response", lab="Jolts", lim=c(0, 3.2))))
+	plot(effect("s_gnaCm2", t.final), colors = "blue", main="", axes=list(y=list(type="response", lab="Jolts", lim=c(0, 0.9))))
+	plot(effect("clientType", t.final), colors = "blue", main="", axes=list(y=list(type="response", lab="Jolts", lim=c(0, 2.7))))
 
 ### Plots of raw data
 
